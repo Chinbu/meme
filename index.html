@@ -130,6 +130,9 @@
             transition: all 0.3s ease;
             font-weight: 600;
             margin: 5px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
         }
 
         .btn:hover {
@@ -143,6 +146,12 @@
         }
 
         .btn-download {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            width: calc(100% - 10px);
+            display: none;
+        }
+
+        .btn-download-now {
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
             width: calc(100% - 10px);
             display: none;
@@ -275,10 +284,13 @@
                         🚀 Generate Meme
                     </button>
                     <button class="btn btn-download" id="downloadBtn" onclick="prepareDownload()">
-                        📥 Download Meme
+                        📥 Download Meme (Upload to ImgBB)
                     </button>
+                    <a class="btn btn-download-now" id="downloadNowBtn" target="_blank">
+                        💾 Download Now (ImgBB)
+                    </a>
                     <button class="btn btn-telegram" id="telegramBtn" onclick="shareToTelegram()">
-                        📤 Telegram पर Share करें
+                        📤 Share on Telegram
                     </button>
                 </div>
                 <div class="loading" id="loading">
@@ -480,6 +492,7 @@
             const memePlaceholder = document.getElementById('memePlaceholder');
             const downloadBtn = document.getElementById('downloadBtn');
             const telegramBtn = document.getElementById('telegramBtn');
+            const downloadNowBtn = document.getElementById('downloadNowBtn');
 
             // Reset
             error.style.display = 'none';
@@ -487,7 +500,8 @@
             loading.style.display = 'block';
             memeResult.style.display = 'none';
             memePlaceholder.style.display = 'block';
-            downloadBtn.style.display = 'none';
+            downloadBtn.style.display = 'block';
+            downloadNowBtn.style.display = 'none';
             telegramBtn.style.display = 'none';
 
             try {
@@ -510,13 +524,12 @@
                     memeResult.src = currentMemeUrl;
                     memeResult.style.display = 'block';
                     memePlaceholder.style.display = 'none';
-                    downloadBtn.style.display = 'block';
                     
                     if (isTelegram) {
                         telegramBtn.style.display = 'block';
                     }
                     
-                    success.textContent = '✅ Meme successfully generated!';
+                    success.textContent = '✅ Meme successfully generated! Click "Download Meme" to upload to ImgBB.';
                     success.style.display = 'block';
                 } else {
                     throw new Error(data.error_message || 'Failed to generate meme');
@@ -536,11 +549,15 @@
             const countdownTimer = document.getElementById('countdownTimer');
             const downloadBtn = document.getElementById('downloadBtn');
             const telegramBtn = document.getElementById('telegramBtn');
+            const downloadNowBtn = document.getElementById('downloadNowBtn');
             const error = document.getElementById('error');
+            const success = document.getElementById('success');
             
             // Reset
             error.style.display = 'none';
+            success.style.display = 'none';
             downloadBtn.disabled = true;
+            downloadBtn.style.display = 'none';
             if (telegramBtn) telegramBtn.disabled = true;
             countdown.style.display = 'block';
             
@@ -563,6 +580,7 @@
             const countdown = document.getElementById('countdown');
             const downloadBtn = document.getElementById('downloadBtn');
             const telegramBtn = document.getElementById('telegramBtn');
+            const downloadNowBtn = document.getElementById('downloadNowBtn');
             const error = document.getElementById('error');
             const success = document.getElementById('success');
             
@@ -586,20 +604,20 @@
                 if (imgbbData.success) {
                     imgbbUrl = imgbbData.data.url;
                     
-                    if (isTelegram) {
-                        // In Telegram, show success message with link
-                        success.textContent = `✅ Meme uploaded! Click the link to download: ${imgbbUrl}`;
-                        success.style.display = 'block';
-                        
-                        // Also show Telegram share button
-                        if (telegramBtn) {
-                            telegramBtn.disabled = false;
-                            telegramBtn.style.display = 'block';
-                        }
-                    } else {
-                        // Outside Telegram, redirect directly
-                        window.open(imgbbUrl, '_blank');
+                    // Update download now button with direct link
+                    downloadNowBtn.href = imgbbUrl;
+                    downloadNowBtn.style.display = 'block';
+                    downloadBtn.style.display = 'none';
+                    
+                    // Enable Telegram button
+                    if (isTelegram && telegramBtn) {
+                        telegramBtn.disabled = false;
+                        telegramBtn.style.display = 'block';
                     }
+                    
+                    success.textContent = '✅ Meme uploaded to ImgBB! Click "Download Now" to get your meme.';
+                    success.style.display = 'block';
+                    
                 } else {
                     throw new Error('Failed to upload to ImgBB');
                 }
@@ -607,10 +625,10 @@
             } catch (err) {
                 error.textContent = `Download Error: ${err.message}`;
                 error.style.display = 'block';
+                downloadBtn.disabled = false;
+                downloadBtn.style.display = 'block';
             } finally {
                 countdown.style.display = 'none';
-                downloadBtn.disabled = false;
-                if (telegramBtn) telegramBtn.disabled = false;
             }
         }
 
@@ -621,42 +639,38 @@
                 return;
             }
 
+            if (!imgbbUrl) {
+                alert('Please upload the meme to ImgBB first by clicking "Download Meme"');
+                return;
+            }
+
             try {
-                // Create share message
-                const shareText = `Check out this awesome meme I created! 🎭\n\nDownload link: ${imgbbUrl || currentMemeUrl}`;
-                
                 // Use Telegram's share functionality
+                const shareText = `Check out this awesome meme I created! 🎭\n\n${imgbbUrl}`;
+                
+                // Open share dialog in Telegram
                 if (tg.showPopup) {
                     tg.showPopup({
-                        title: 'Share Meme',
-                        message: 'Meme ready to share! Copy the link and share it with your friends.',
+                        title: 'Share on Telegram',
+                        message: 'Ready to share your meme? It will be shared as a message with the ImgBB link.',
                         buttons: [
-                            {id: 'copy', type: 'ok', text: 'Copy Link'},
-                            {id: 'close', type: 'close'}
+                            {id: 'share', type: 'default', text: 'Share Meme'},
+                            {id: 'cancel', type: 'cancel'}
                         ]
                     }, (buttonId) => {
-                        if (buttonId === 'copy') {
-                            // Copy to clipboard
-                            navigator.clipboard.writeText(imgbbUrl || currentMemeUrl).then(() => {
-                                tg.showPopup({
-                                    title: 'Success',
-                                    message: 'Link copied to clipboard! You can now share it.'
-                                });
-                            });
+                        if (buttonId === 'share') {
+                            // Share via Telegram
+                            tg.shareMessage(shareText);
                         }
                     });
                 } else {
                     // Fallback for older Telegram versions
-                    navigator.clipboard.writeText(imgbbUrl || currentMemeUrl).then(() => {
-                        alert('Link copied to clipboard! You can now share it in Telegram.');
-                    });
+                    tg.shareMessage(shareText);
                 }
             } catch (error) {
                 console.error('Telegram share error:', error);
-                // Fallback: copy to clipboard
-                navigator.clipboard.writeText(imgbbUrl || currentMemeUrl).then(() => {
-                    alert('Link copied to clipboard! You can now share it in Telegram.');
-                });
+                // Final fallback
+                alert('Sharing feature not available. You can copy the link and share manually: ' + imgbbUrl);
             }
         }
 
