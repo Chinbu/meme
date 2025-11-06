@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Meme Generator</title>
+    <title>Meme Generator Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src='//libtl.com/sdk.js' data-zone='10151141' data-sdk='show_10151141'></script>
     <style>
         * {
             margin: 0;
@@ -13,306 +14,546 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            color: #333;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
             overflow: hidden;
+            backdrop-filter: blur(10px);
         }
 
         .header {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             color: white;
-            padding: 30px;
+            padding: 40px 30px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="%23ffffff" opacity="0.1"><polygon points="0,100 1000,0 1000,100"/></svg>');
+            background-size: cover;
         }
 
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            font-weight: 700;
+            position: relative;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            font-weight: 300;
+            position: relative;
         }
 
         .meme-controls {
-            padding: 30px;
+            padding: 40px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            gap: 40px;
         }
 
         .template-selection {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            border: 2px solid #e9ecef;
+            background: #f8fafc;
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .template-selection h3 {
+            color: #1e293b;
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .template-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             gap: 15px;
-            margin-top: 15px;
-            max-height: 400px;
+            margin-top: 20px;
+            max-height: 450px;
             overflow-y: auto;
             padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: white;
         }
 
         .template-item {
             cursor: pointer;
             border: 3px solid transparent;
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .template-item:hover {
-            transform: scale(1.05);
-            border-color: #007bff;
+            transform: translateY(-3px);
+            border-color: #6366f1;
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
         }
 
         .template-item.active {
-            border-color: #28a745;
+            border-color: #10b981;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
         }
 
         .template-item img {
             width: 100%;
-            height: 80px;
+            height: 90px;
             object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .template-item:hover img {
+            transform: scale(1.05);
+        }
+
+        .template-name {
+            padding: 10px 5px;
+            font-size: 12px;
+            text-align: center;
+            color: #475569;
+            font-weight: 500;
+            background: #f8fafc;
         }
 
         .meme-creator {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            border: 2px solid #e9ecef;
+            background: #f8fafc;
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .meme-creator h3 {
+            color: #1e293b;
+            font-size: 1.4em;
+            margin-bottom: 25px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-weight: 600;
-            color: #495057;
+            color: #374151;
+            font-size: 0.95em;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
             font-size: 16px;
-            transition: border-color 0.3s ease;
+            transition: all 0.3s ease;
+            background: white;
+            font-family: inherit;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: #007bff;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #9ca3af;
         }
 
         .btn {
-            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             color: white;
             border: none;
-            padding: 15px 30px;
+            padding: 16px 32px;
             font-size: 16px;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             font-weight: 600;
-            margin: 5px;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
+            margin: 8px 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
         }
 
         .btn-generate {
-            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
-            width: calc(100% - 10px);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         }
 
-        .btn-download {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-            width: calc(100% - 10px);
+        .btn-generate:hover {
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-unlock {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
             display: none;
+        }
+
+        .btn-unlock:hover {
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
         }
 
         .btn-download-now {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-            width: calc(100% - 10px);
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            text-decoration: none;
             display: none;
         }
 
-        .btn-telegram {
-            background: linear-gradient(135deg, #0088cc 0%, #006699 100%);
-            width: calc(100% - 10px);
+        .btn-download-now:hover {
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
             display: none;
+        }
+
+        .btn-reset:hover {
+            box-shadow: 0 8px 25px rgba(107, 114, 128, 0.3);
         }
 
         .meme-preview {
-            padding: 30px;
+            padding: 40px;
             text-align: center;
-            background: #f8f9fa;
-            margin: 0 30px 30px;
-            border-radius: 10px;
-            border: 2px dashed #dee2e6;
+            background: #f8fafc;
+            margin: 0 40px 40px;
+            border-radius: 20px;
+            border: 2px dashed #cbd5e1;
+            transition: all 0.3s ease;
+        }
+
+        .meme-preview.has-meme {
+            border-color: #10b981;
+            background: #f0fdf4;
         }
 
         .meme-result {
             max-width: 100%;
-            max-height: 400px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-height: 450px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
             display: none;
+            border: 3px solid #e5e7eb;
         }
 
         .loading {
             display: none;
             font-size: 18px;
-            color: #007bff;
-            margin: 20px 0;
+            color: #6366f1;
+            margin: 25px 0;
+            font-weight: 500;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .loading::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid #6366f1;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .error {
-            color: #dc3545;
-            background: #f8d7da;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 10px 0;
+            color: #dc2626;
+            background: #fef2f2;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
             display: none;
+            border: 1px solid #fecaca;
+            font-weight: 500;
         }
 
         .success {
-            color: #155724;
-            background: #d4edda;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 10px 0;
+            color: #065f46;
+            background: #f0fdf4;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
             display: none;
+            border: 1px solid #bbf7d0;
+            font-weight: 500;
         }
 
         .countdown {
             display: none;
             font-size: 18px;
-            color: #ff6b6b;
+            color: #f59e0b;
             margin: 20px 0;
-            font-weight: bold;
+            font-weight: 600;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         .button-container {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            gap: 12px;
         }
 
-        .telegram-info {
-            background: #0088cc;
-            color: white;
+        .preview-placeholder {
+            color: #6b7280;
+            font-size: 18px;
+            margin-top: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .preview-icon {
+            font-size: 3em;
+            opacity: 0.5;
+        }
+
+        .ads-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
             padding: 15px;
             border-radius: 10px;
-            margin: 10px 0;
+            margin: 15px 0;
             text-align: center;
             display: none;
         }
 
-        @media (max-width: 768px) {
+        .ads-counter {
+            font-weight: bold;
+            color: #d63031;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 24px 20px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .footer p {
+            color: #6c757d;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer a:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 968px) {
             .meme-controls {
                 grid-template-columns: 1fr;
+                gap: 30px;
             }
             
             .header h1 {
-                font-size: 2em;
+                font-size: 2.2em;
+            }
+            
+            .meme-preview {
+                margin: 0 30px 30px;
             }
         }
 
-        /* Telegram Mini App specific styles */
-        .telegram-mode {
-            background: linear-gradient(135deg, #0088cc 0%, #006699 100%) !important;
+        @media (max-width: 640px) {
+            body {
+                padding: 15px;
+            }
+            
+            .container {
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .meme-controls {
+                padding: 25px;
+            }
+            
+            .template-selection,
+            .meme-creator {
+                padding: 25px;
+            }
+            
+            .template-grid {
+                grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            }
         }
 
-        .telegram-mode .header {
-            background: linear-gradient(135deg, #0088cc 0%, #006699 100%) !important;
+        /* Scrollbar Styling */
+        .template-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .template-grid::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+
+        .template-grid::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .template-grid::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
     </style>
 </head>
 <body>
     <div class="container" id="mainContainer">
         <div class="header">
-            <h1>🤖 AI Meme Generator</h1>
-            <p>18 Popular Templates - Create Memes in Seconds!</p>
-        </div>
-
-        <div class="telegram-info" id="telegramInfo">
-            <strong>📱 Telegram Mini App Mode</strong>
-            <p>आप Telegram के अंदर इस App का उपयोग कर रहे हैं</p>
+            <h1>🎭 Meme Generator Pro</h1>
+            <p>Create Professional Memes in Seconds</p>
         </div>
 
         <div class="meme-controls">
             <div class="template-selection">
-                <h3>🎯 Popular Meme Templates</h3>
+                <h3>📁 Meme Templates</h3>
                 <div class="template-grid" id="templateGrid">
                     <!-- Templates will be loaded here -->
                 </div>
             </div>
 
             <div class="meme-creator">
-                <h3>✍️ Create Your Meme</h3>
+                <h3>✏️ Create Meme</h3>
                 <div class="form-group">
                     <label for="topText">Top Text</label>
-                    <input type="text" id="topText" placeholder="Enter top text..." maxlength="100">
+                    <input type="text" id="topText" placeholder="Enter catchy top text..." maxlength="100">
                 </div>
                 <div class="form-group">
                     <label for="bottomText">Bottom Text</label>
-                    <input type="text" id="bottomText" placeholder="Enter bottom text..." maxlength="100">
+                    <input type="text" id="bottomText" placeholder="Enter punchline bottom text..." maxlength="100">
                 </div>
                 <div class="button-container">
                     <button class="btn btn-generate" onclick="generateMeme()">
                         🚀 Generate Meme
                     </button>
-                    <button class="btn btn-download" id="downloadBtn" onclick="prepareDownload()">
-                        📥 Download Meme (Upload to ImgBB)
+                    <button class="btn btn-unlock" id="unlockBtn" onclick="showAdsForUnlock()">
+                        🔓 Unlock Download (Watch 2 Ads)
                     </button>
                     <a class="btn btn-download-now" id="downloadNowBtn" target="_blank">
-                        💾 Download Now (ImgBB)
+                        💾 Download Now
                     </a>
-                    <button class="btn btn-telegram" id="telegramBtn" onclick="shareToTelegram()">
-                        📤 Share on Telegram
+                    <button class="btn btn-reset" id="resetBtn" onclick="resetAll()">
+                        🔄 Reset All
                     </button>
                 </div>
+                <div class="ads-info" id="adsInfo">
+                    Watch <span class="ads-counter" id="adsCounter">2</span> ads to unlock download feature
+                </div>
                 <div class="loading" id="loading">
-                    ⏳ Creating your meme...
+                    Creating your masterpiece...
                 </div>
                 <div class="countdown" id="countdown">
-                    ⏳ Uploading to ImgBB: <span id="countdownTimer">10</span> seconds
+                    ⏳ Uploading: <span id="countdownTimer">10</span>s
                 </div>
                 <div class="error" id="error"></div>
                 <div class="success" id="success"></div>
             </div>
         </div>
 
-        <div class="meme-preview">
-            <h3>📸 Your Meme Preview</h3>
+        <div class="meme-preview" id="memePreview">
+            <h3>👀 Preview</h3>
             <img id="memeResult" class="meme-result" alt="Generated Meme">
-            <div id="memePlaceholder">
-                <p style="color: #6c757d; font-size: 18px; margin-top: 50px;">
-                    Your generated meme will appear here
-                </p>
+            <div id="memePlaceholder" class="preview-placeholder">
+                <div class="preview-icon">🖼️</div>
+                <p>Your generated meme will appear here</p>
             </div>
         </div>
+
+        <footer class="footer">
+            <p>
+                Made With 💖 By XBI | 
+                <a href="https://t.me/+je3SYj65zM84MzRl" target="_blank" class="text-blue-500 hover:text-blue-700 font-medium">Join Telegram</a>
+            </p>
+        </footer>
     </div>
 
     <script>
@@ -321,6 +562,10 @@
         let isTelegram = false;
         let currentMemeUrl = '';
         let imgbbUrl = '';
+        let generateCount = 0;
+        let adsWatched = 0;
+        let adsRequired = 2;
+        let autoAdsInterval;
 
         // Detect if we're in Telegram
         function initTelegram() {
@@ -328,15 +573,23 @@
                 tg = window.Telegram.WebApp;
                 if (tg && tg.initData) {
                     isTelegram = true;
-                    document.getElementById('telegramInfo').style.display = 'block';
-                    document.getElementById('mainContainer').classList.add('telegram-mode');
-                    tg.expand(); // Expand the app to full screen
-                    tg.enableClosingConfirmation(); // Show confirmation when closing
+                    tg.expand();
+                    tg.enableClosingConfirmation();
                 }
             } catch (error) {
                 console.log('Not in Telegram environment');
                 isTelegram = false;
             }
+        }
+
+        // Start auto ads every 7 minutes
+        function startAutoAds() {
+            autoAdsInterval = setInterval(() => {
+                if (typeof showAds === 'function') {
+                    showAds();
+                    console.log('Auto ads displayed');
+                }
+            }, 7 * 60 * 1000); // 7 minutes
         }
 
         // Popular meme templates (ImgFlip template IDs)
@@ -462,8 +715,8 @@
                 const templateItem = document.createElement('div');
                 templateItem.className = 'template-item';
                 templateItem.innerHTML = `
-                    <img src="${template.url}" alt="${template.name}" onerror="this.src='https://via.placeholder.com/120x80/cccccc/666666?text=Template'">
-                    <div style="padding: 5px; font-size: 12px; text-align: center;">${template.name}</div>
+                    <img src="${template.url}" alt="${template.name}" onerror="this.src='https://via.placeholder.com/130x90/e5e7eb/6b7280?text=Template'">
+                    <div class="template-name">${template.name}</div>
                 `;
                 
                 templateItem.addEventListener('click', () => {
@@ -490,19 +743,23 @@
             const success = document.getElementById('success');
             const memeResult = document.getElementById('memeResult');
             const memePlaceholder = document.getElementById('memePlaceholder');
-            const downloadBtn = document.getElementById('downloadBtn');
-            const telegramBtn = document.getElementById('telegramBtn');
+            const unlockBtn = document.getElementById('unlockBtn');
             const downloadNowBtn = document.getElementById('downloadNowBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const memePreview = document.getElementById('memePreview');
+            const adsInfo = document.getElementById('adsInfo');
 
             // Reset
             error.style.display = 'none';
             success.style.display = 'none';
-            loading.style.display = 'block';
+            loading.style.display = 'flex';
             memeResult.style.display = 'none';
-            memePlaceholder.style.display = 'block';
-            downloadBtn.style.display = 'block';
+            memePlaceholder.style.display = 'flex';
+            unlockBtn.style.display = 'none';
             downloadNowBtn.style.display = 'none';
-            telegramBtn.style.display = 'none';
+            resetBtn.style.display = 'none';
+            adsInfo.style.display = 'none';
+            memePreview.classList.remove('has-meme');
 
             try {
                 const formData = new FormData();
@@ -524,13 +781,24 @@
                     memeResult.src = currentMemeUrl;
                     memeResult.style.display = 'block';
                     memePlaceholder.style.display = 'none';
+                    memePreview.classList.add('has-meme');
                     
-                    if (isTelegram) {
-                        telegramBtn.style.display = 'block';
+                    // Increment generate count
+                    generateCount++;
+                    
+                    // Show unlock button after 3rd generation
+                    if (generateCount >= 3) {
+                        unlockBtn.style.display = 'block';
+                        adsInfo.style.display = 'block';
+                        updateAdsCounter();
+                    } else {
+                        // Show reset button immediately
+                        resetBtn.style.display = 'block';
                     }
                     
-                    success.textContent = '✅ Meme successfully generated! Click "Download Meme" to upload to ImgBB.';
+                    success.textContent = `✅ Meme generated successfully! ${generateCount >= 3 ? 'Watch ads to unlock download.' : ''}`;
                     success.style.display = 'block';
+
                 } else {
                     throw new Error(data.error_message || 'Failed to generate meme');
                 }
@@ -543,141 +811,156 @@
             }
         }
 
-        // Prepare download with countdown
-        function prepareDownload() {
-            const countdown = document.getElementById('countdown');
-            const countdownTimer = document.getElementById('countdownTimer');
-            const downloadBtn = document.getElementById('downloadBtn');
-            const telegramBtn = document.getElementById('telegramBtn');
-            const downloadNowBtn = document.getElementById('downloadNowBtn');
-            const error = document.getElementById('error');
-            const success = document.getElementById('success');
-            
-            // Reset
-            error.style.display = 'none';
-            success.style.display = 'none';
-            downloadBtn.disabled = true;
-            downloadBtn.style.display = 'none';
-            if (telegramBtn) telegramBtn.disabled = true;
-            countdown.style.display = 'block';
-            
-            let seconds = 10;
-            countdownTimer.textContent = seconds;
-            
-            const countdownInterval = setInterval(() => {
-                seconds--;
-                countdownTimer.textContent = seconds;
+        // Show ads for unlock
+        function showAdsForUnlock() {
+            if (typeof showAds === 'function') {
+                showAds();
+                adsWatched++;
+                updateAdsCounter();
                 
-                if (seconds <= 0) {
-                    clearInterval(countdownInterval);
+                if (adsWatched >= adsRequired) {
+                    // Show download now button
+                    document.getElementById('unlockBtn').style.display = 'none';
+                    document.getElementById('adsInfo').style.display = 'none';
+                    document.getElementById('downloadNowBtn').style.display = 'block';
+                    document.getElementById('resetBtn').style.display = 'block';
+                    
+                    // Start upload process
                     uploadToImgBB();
                 }
-            }, 1000);
+            } else {
+                // Fallback for testing
+                adsWatched++;
+                updateAdsCounter();
+                
+                if (adsWatched >= adsRequired) {
+                    document.getElementById('unlockBtn').style.display = 'none';
+                    document.getElementById('adsInfo').style.display = 'none';
+                    document.getElementById('downloadNowBtn').style.display = 'block';
+                    document.getElementById('resetBtn').style.display = 'block';
+                    uploadToImgBB();
+                }
+            }
+        }
+
+        // Update ads counter
+        function updateAdsCounter() {
+            const remaining = adsRequired - adsWatched;
+            document.getElementById('adsCounter').textContent = remaining;
         }
 
         // Upload to ImgBB and get download link
         async function uploadToImgBB() {
             const countdown = document.getElementById('countdown');
-            const downloadBtn = document.getElementById('downloadBtn');
-            const telegramBtn = document.getElementById('telegramBtn');
             const downloadNowBtn = document.getElementById('downloadNowBtn');
             const error = document.getElementById('error');
             const success = document.getElementById('success');
             
             try {
-                // Convert image to blob
-                const response = await fetch(currentMemeUrl);
-                const blob = await response.blob();
+                countdown.style.display = 'flex';
+                let seconds = 10;
+                document.getElementById('countdownTimer').textContent = seconds;
                 
-                // Create form data for ImgBB
-                const formData = new FormData();
-                formData.append('image', blob);
-                
-                // Upload to ImgBB
-                const imgbbResponse = await fetch('https://api.imgbb.com/1/upload?key=d5b5d8ca4f3a3c0a1e2248d121111692', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const imgbbData = await imgbbResponse.json();
-                
-                if (imgbbData.success) {
-                    imgbbUrl = imgbbData.data.url;
+                const countdownInterval = setInterval(() => {
+                    seconds--;
+                    document.getElementById('countdownTimer').textContent = seconds;
                     
-                    // Update download now button with direct link
-                    downloadNowBtn.href = imgbbUrl;
-                    downloadNowBtn.style.display = 'block';
-                    downloadBtn.style.display = 'none';
-                    
-                    // Enable Telegram button
-                    if (isTelegram && telegramBtn) {
-                        telegramBtn.disabled = false;
-                        telegramBtn.style.display = 'block';
+                    if (seconds <= 0) {
+                        clearInterval(countdownInterval);
+                        performImgBBUpload();
                     }
-                    
-                    success.textContent = '✅ Meme uploaded to ImgBB! Click "Download Now" to get your meme.';
-                    success.style.display = 'block';
-                    
-                } else {
-                    throw new Error('Failed to upload to ImgBB');
+                }, 1000);
+
+                async function performImgBBUpload() {
+                    try {
+                        // Convert image to blob
+                        const response = await fetch(currentMemeUrl);
+                        const blob = await response.blob();
+                        
+                        // Create form data for ImgBB
+                        const formData = new FormData();
+                        formData.append('image', blob);
+                        
+                        // Upload to ImgBB
+                        const imgbbResponse = await fetch('https://api.imgbb.com/1/upload?key=d5b5d8ca4f3a3c0a1e2248d121111692', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const imgbbData = await imgbbResponse.json();
+                        
+                        if (imgbbData.success) {
+                            imgbbUrl = imgbbData.data.url;
+                            
+                            // Update download now button with direct link
+                            downloadNowBtn.href = imgbbUrl;
+                            
+                            success.textContent = '✅ Meme uploaded to ImgBB! Click "Download Now" to get your meme.';
+                            success.style.display = 'block';
+                            
+                        } else {
+                            throw new Error('Failed to upload to ImgBB');
+                        }
+                        
+                    } catch (err) {
+                        error.textContent = `Upload Error: ${err.message}`;
+                        error.style.display = 'block';
+                    } finally {
+                        countdown.style.display = 'none';
+                    }
                 }
                 
             } catch (err) {
-                error.textContent = `Download Error: ${err.message}`;
+                error.textContent = `Upload Error: ${err.message}`;
                 error.style.display = 'block';
-                downloadBtn.disabled = false;
-                downloadBtn.style.display = 'block';
-            } finally {
                 countdown.style.display = 'none';
             }
         }
 
-        // Share to Telegram
-        function shareToTelegram() {
-            if (!isTelegram || !tg) {
-                alert('This feature is only available in Telegram');
-                return;
-            }
-
-            if (!imgbbUrl) {
-                alert('Please upload the meme to ImgBB first by clicking "Download Meme"');
-                return;
-            }
-
-            try {
-                // Use Telegram's share functionality
-                const shareText = `Check out this awesome meme I created! 🎭\n\n${imgbbUrl}`;
-                
-                // Open share dialog in Telegram
-                if (tg.showPopup) {
-                    tg.showPopup({
-                        title: 'Share on Telegram',
-                        message: 'Ready to share your meme? It will be shared as a message with the ImgBB link.',
-                        buttons: [
-                            {id: 'share', type: 'default', text: 'Share Meme'},
-                            {id: 'cancel', type: 'cancel'}
-                        ]
-                    }, (buttonId) => {
-                        if (buttonId === 'share') {
-                            // Share via Telegram
-                            tg.shareMessage(shareText);
-                        }
-                    });
-                } else {
-                    // Fallback for older Telegram versions
-                    tg.shareMessage(shareText);
-                }
-            } catch (error) {
-                console.error('Telegram share error:', error);
-                // Final fallback
-                alert('Sharing feature not available. You can copy the link and share manually: ' + imgbbUrl);
-            }
+        // Reset all fields and preview
+        function resetAll() {
+            // Clear input fields
+            document.getElementById('topText').value = '';
+            document.getElementById('bottomText').value = '';
+            
+            // Reset preview
+            document.getElementById('memeResult').style.display = 'none';
+            document.getElementById('memeResult').src = '';
+            document.getElementById('memePlaceholder').style.display = 'flex';
+            document.getElementById('memePreview').classList.remove('has-meme');
+            
+            // Hide buttons
+            document.getElementById('unlockBtn').style.display = 'none';
+            document.getElementById('downloadNowBtn').style.display = 'none';
+            document.getElementById('resetBtn').style.display = 'none';
+            document.getElementById('adsInfo').style.display = 'none';
+            
+            // Clear messages
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('success').style.display = 'none';
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('countdown').style.display = 'none';
+            
+            // Reset variables
+            currentMemeUrl = '';
+            imgbbUrl = '';
+            
+            // Show success message
+            const success = document.getElementById('success');
+            success.textContent = '🔄 All fields have been reset. Ready to create a new meme!';
+            success.style.display = 'block';
+            
+            // Auto-hide success message after 3 seconds
+            setTimeout(() => {
+                success.style.display = 'none';
+            }, 3000);
         }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             initTelegram();
             loadTemplates();
+            startAutoAds();
             
             // Add enter key support
             document.getElementById('topText').addEventListener('keypress', function(e) {
@@ -692,7 +975,7 @@
             if (isTelegram && tg) {
                 tg.BackButton.show();
                 tg.BackButton.onClick(() => {
-                    if (confirm('क्या आप Meme Generator से बाहर निकलना चाहते हैं?')) {
+                    if (confirm('Do you want to close the Meme Generator?')) {
                         tg.close();
                     }
                 });
