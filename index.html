@@ -214,6 +214,7 @@
             gap: 8px;
             position: relative;
             overflow: hidden;
+            text-align: center;
         }
 
         .btn::before {
@@ -250,7 +251,7 @@
 
         .btn-download {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            display: block;
+            display: none;
         }
 
         .btn-download:hover {
@@ -261,6 +262,7 @@
             background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             text-decoration: none;
             display: none;
+            text-align: center;
         }
 
         .btn-download-now:hover {
@@ -367,17 +369,6 @@
         .preview-icon {
             font-size: 3em;
             opacity: 0.5;
-        }
-
-        .ads-info {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            text-align: center;
-            display: none;
         }
 
         .footer {
@@ -566,7 +557,6 @@
                 if (typeof show_10151141 === 'undefined') {
                     // Fallback if ads not loaded
                     setTimeout(() => {
-                        alert('Your Meme Is Generated!');
                         resolve();
                     }, 1000);
                     return;
@@ -574,14 +564,11 @@
                 
                 try {
                     show_10151141().then(() => {
-                        alert('Your Meme Is Generated!');
                         resolve();
                     }).catch(() => {
-                        alert('Your Meme Is Generated!');
                         resolve();
                     });
                 } catch (error) {
-                    alert('Your Meme Is Generated!');
                     resolve();
                 }
             });
@@ -593,7 +580,6 @@
                 if (typeof show_10151141 === 'undefined') {
                     // Fallback if ads not loaded
                     setTimeout(() => {
-                        alert('Your Mem Is Ready To Download!');
                         resolve();
                     }, 1000);
                     return;
@@ -601,14 +587,38 @@
                 
                 try {
                     show_10151141().then(() => {
-                        alert('Your Mem Is Ready To Download!');
                         resolve();
                     }).catch(() => {
-                        alert('Your Mem Is Ready To Download!');
                         resolve();
                     });
                 } catch (error) {
-                    alert('Your Mem Is Ready To Download!');
+                    resolve();
+                }
+            });
+        }
+
+        // Auto ads function with alert
+        function showAutoAd() {
+            return new Promise((resolve, reject) => {
+                if (typeof show_10151141 === 'undefined') {
+                    // Fallback if ads not loaded
+                    setTimeout(() => {
+                        alert('Thanks For Your Support!');
+                        resolve();
+                    }, 1000);
+                    return;
+                }
+                
+                try {
+                    show_10151141().then(() => {
+                        alert('Thanks For Your Support!');
+                        resolve();
+                    }).catch(() => {
+                        alert('Thanks For Your Support!');
+                        resolve();
+                    });
+                } catch (error) {
+                    alert('Thanks For Your Support!');
                     resolve();
                 }
             });
@@ -617,10 +627,8 @@
         // Start auto ads every 7 minutes
         function startAutoAds() {
             autoAdsInterval = setInterval(() => {
-                if (typeof show_10151141 === 'function') {
-                    show_10151141();
-                    console.log('Auto ads displayed');
-                }
+                showAutoAd();
+                console.log('Auto ads displayed');
             }, 7 * 60 * 1000); // 7 minutes
         }
 
@@ -799,9 +807,9 @@
             loading.style.display = 'flex';
             memeResult.style.display = 'none';
             memePlaceholder.style.display = 'flex';
-            downloadBtn.style.display = 'block';
+            downloadBtn.style.display = 'none';
             downloadNowBtn.style.display = 'none';
-            resetBtn.style.display = 'block';
+            resetBtn.style.display = 'none';
             memePreview.classList.remove('has-meme');
 
             try {
@@ -826,6 +834,10 @@
                     memePlaceholder.style.display = 'none';
                     memePreview.classList.add('has-meme');
                     
+                    // Show download button after successful generation
+                    downloadBtn.style.display = 'block';
+                    resetBtn.style.display = 'block';
+                    
                     success.textContent = '✅ Meme generated successfully! Click "Download Meme" to get your file.';
                     success.style.display = 'block';
 
@@ -848,19 +860,33 @@
                 return;
             }
 
-            downloadAdsCount++;
+            const downloadBtn = document.getElementById('downloadBtn');
+            downloadBtn.disabled = true;
             
-            // Show first ad
-            await showDownloadAd();
-            
-            // Show second ad if needed
-            if (downloadAdsCount < downloadAdsRequired) {
+            try {
+                // Show first ad
                 await showDownloadAd();
                 downloadAdsCount++;
+                
+                // Show second ad
+                if (downloadAdsCount < downloadAdsRequired) {
+                    await showDownloadAd();
+                    downloadAdsCount++;
+                }
+                
+                // Show alert after last ad
+                alert('Your Mem Is Ready To Download!');
+                
+                // Upload to ImgBB and enable download
+                await uploadToImgBB();
+                
+            } catch (error) {
+                console.error('Error showing ads:', error);
+                alert('Your Mem Is Ready To Download!');
+                await uploadToImgBB();
+            } finally {
+                downloadBtn.disabled = false;
             }
-            
-            // Upload to ImgBB and enable download
-            await uploadToImgBB();
         }
 
         // Upload to ImgBB and get download link
@@ -921,7 +947,7 @@
             document.getElementById('memePreview').classList.remove('has-meme');
             
             // Hide buttons
-            document.getElementById('downloadBtn').style.display = 'block';
+            document.getElementById('downloadBtn').style.display = 'none';
             document.getElementById('downloadNowBtn').style.display = 'none';
             document.getElementById('resetBtn').style.display = 'none';
             
