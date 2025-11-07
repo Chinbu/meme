@@ -248,12 +248,12 @@
             box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
         }
 
-        .btn-unlock {
+        .btn-download {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            display: none;
+            display: block;
         }
 
-        .btn-unlock:hover {
+        .btn-download:hover {
             box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
         }
 
@@ -348,17 +348,6 @@
             font-weight: 500;
         }
 
-        .countdown {
-            display: none;
-            font-size: 18px;
-            color: #f59e0b;
-            margin: 20px 0;
-            font-weight: 600;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
         .button-container {
             display: flex;
             flex-direction: column;
@@ -389,11 +378,6 @@
             margin: 15px 0;
             text-align: center;
             display: none;
-        }
-
-        .ads-counter {
-            font-weight: bold;
-            color: #d63031;
         }
 
         .footer {
@@ -512,11 +496,11 @@
                     <input type="text" id="bottomText" placeholder="Enter punchline bottom text..." maxlength="100">
                 </div>
                 <div class="button-container">
-                    <button class="btn btn-generate" onclick="generateMeme()">
+                    <button class="btn btn-generate" onclick="generateMemeWithAd()">
                         🚀 Generate Meme
                     </button>
-                    <button class="btn btn-unlock" id="unlockBtn" onclick="showAdsForUnlock()">
-                        🔓 Unlock Download (Watch 2 Ads)
+                    <button class="btn btn-download" id="downloadBtn" onclick="downloadWithAds()">
+                        📥 Download Meme
                     </button>
                     <a class="btn btn-download-now" id="downloadNowBtn" target="_blank">
                         💾 Download Now
@@ -525,14 +509,8 @@
                         🔄 Reset All
                     </button>
                 </div>
-                <div class="ads-info" id="adsInfo">
-                    Watch <span class="ads-counter" id="adsCounter">2</span> ads to unlock download feature
-                </div>
                 <div class="loading" id="loading">
                     Creating your masterpiece...
-                </div>
-                <div class="countdown" id="countdown">
-                    ⏳ Uploading: <span id="countdownTimer">10</span>s
                 </div>
                 <div class="error" id="error"></div>
                 <div class="success" id="success"></div>
@@ -563,8 +541,8 @@
         let currentMemeUrl = '';
         let imgbbUrl = '';
         let generateCount = 0;
-        let adsWatched = 0;
-        let adsRequired = 2;
+        let downloadAdsCount = 0;
+        let downloadAdsRequired = 2;
         let autoAdsInterval;
 
         // Detect if we're in Telegram
@@ -582,11 +560,65 @@
             }
         }
 
+        // Ads function for generate button
+        function showGenerateAd() {
+            return new Promise((resolve, reject) => {
+                if (typeof show_10151141 === 'undefined') {
+                    // Fallback if ads not loaded
+                    setTimeout(() => {
+                        alert('Your Meme Is Generated!');
+                        resolve();
+                    }, 1000);
+                    return;
+                }
+                
+                try {
+                    show_10151141().then(() => {
+                        alert('Your Meme Is Generated!');
+                        resolve();
+                    }).catch(() => {
+                        alert('Your Meme Is Generated!');
+                        resolve();
+                    });
+                } catch (error) {
+                    alert('Your Meme Is Generated!');
+                    resolve();
+                }
+            });
+        }
+
+        // Ads function for download button
+        function showDownloadAd() {
+            return new Promise((resolve, reject) => {
+                if (typeof show_10151141 === 'undefined') {
+                    // Fallback if ads not loaded
+                    setTimeout(() => {
+                        alert('Your Mem Is Ready To Download!');
+                        resolve();
+                    }, 1000);
+                    return;
+                }
+                
+                try {
+                    show_10151141().then(() => {
+                        alert('Your Mem Is Ready To Download!');
+                        resolve();
+                    }).catch(() => {
+                        alert('Your Mem Is Ready To Download!');
+                        resolve();
+                    });
+                } catch (error) {
+                    alert('Your Mem Is Ready To Download!');
+                    resolve();
+                }
+            });
+        }
+
         // Start auto ads every 7 minutes
         function startAutoAds() {
             autoAdsInterval = setInterval(() => {
-                if (typeof showAds === 'function') {
-                    showAds();
+                if (typeof show_10151141 === 'function') {
+                    show_10151141();
                     console.log('Auto ads displayed');
                 }
             }, 7 * 60 * 1000); // 7 minutes
@@ -734,6 +766,19 @@
             document.querySelector('.template-item').classList.add('active');
         }
 
+        // Generate meme with ads
+        async function generateMemeWithAd() {
+            generateCount++;
+            
+            // Show ad every 3rd generation
+            if (generateCount % 3 === 0) {
+                await showGenerateAd();
+            }
+            
+            // Generate the meme
+            await generateMeme();
+        }
+
         // Generate meme using ImgFlip API
         async function generateMeme() {
             const topText = document.getElementById('topText').value;
@@ -743,11 +788,10 @@
             const success = document.getElementById('success');
             const memeResult = document.getElementById('memeResult');
             const memePlaceholder = document.getElementById('memePlaceholder');
-            const unlockBtn = document.getElementById('unlockBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
             const downloadNowBtn = document.getElementById('downloadNowBtn');
             const resetBtn = document.getElementById('resetBtn');
             const memePreview = document.getElementById('memePreview');
-            const adsInfo = document.getElementById('adsInfo');
 
             // Reset
             error.style.display = 'none';
@@ -755,10 +799,9 @@
             loading.style.display = 'flex';
             memeResult.style.display = 'none';
             memePlaceholder.style.display = 'flex';
-            unlockBtn.style.display = 'none';
+            downloadBtn.style.display = 'block';
             downloadNowBtn.style.display = 'none';
-            resetBtn.style.display = 'none';
-            adsInfo.style.display = 'none';
+            resetBtn.style.display = 'block';
             memePreview.classList.remove('has-meme');
 
             try {
@@ -783,20 +826,7 @@
                     memePlaceholder.style.display = 'none';
                     memePreview.classList.add('has-meme');
                     
-                    // Increment generate count
-                    generateCount++;
-                    
-                    // Show unlock button after 3rd generation
-                    if (generateCount >= 3) {
-                        unlockBtn.style.display = 'block';
-                        adsInfo.style.display = 'block';
-                        updateAdsCounter();
-                    } else {
-                        // Show reset button immediately
-                        resetBtn.style.display = 'block';
-                    }
-                    
-                    success.textContent = `✅ Meme generated successfully! ${generateCount >= 3 ? 'Watch ads to unlock download.' : ''}`;
+                    success.textContent = '✅ Meme generated successfully! Click "Download Meme" to get your file.';
                     success.style.display = 'block';
 
                 } else {
@@ -811,109 +841,70 @@
             }
         }
 
-        // Show ads for unlock
-        function showAdsForUnlock() {
-            if (typeof showAds === 'function') {
-                showAds();
-                adsWatched++;
-                updateAdsCounter();
-                
-                if (adsWatched >= adsRequired) {
-                    // Show download now button
-                    document.getElementById('unlockBtn').style.display = 'none';
-                    document.getElementById('adsInfo').style.display = 'none';
-                    document.getElementById('downloadNowBtn').style.display = 'block';
-                    document.getElementById('resetBtn').style.display = 'block';
-                    
-                    // Start upload process
-                    uploadToImgBB();
-                }
-            } else {
-                // Fallback for testing
-                adsWatched++;
-                updateAdsCounter();
-                
-                if (adsWatched >= adsRequired) {
-                    document.getElementById('unlockBtn').style.display = 'none';
-                    document.getElementById('adsInfo').style.display = 'none';
-                    document.getElementById('downloadNowBtn').style.display = 'block';
-                    document.getElementById('resetBtn').style.display = 'block';
-                    uploadToImgBB();
-                }
+        // Download with ads
+        async function downloadWithAds() {
+            if (!currentMemeUrl) {
+                alert('Please generate a meme first!');
+                return;
             }
-        }
 
-        // Update ads counter
-        function updateAdsCounter() {
-            const remaining = adsRequired - adsWatched;
-            document.getElementById('adsCounter').textContent = remaining;
+            downloadAdsCount++;
+            
+            // Show first ad
+            await showDownloadAd();
+            
+            // Show second ad if needed
+            if (downloadAdsCount < downloadAdsRequired) {
+                await showDownloadAd();
+                downloadAdsCount++;
+            }
+            
+            // Upload to ImgBB and enable download
+            await uploadToImgBB();
         }
 
         // Upload to ImgBB and get download link
         async function uploadToImgBB() {
-            const countdown = document.getElementById('countdown');
+            const downloadBtn = document.getElementById('downloadBtn');
             const downloadNowBtn = document.getElementById('downloadNowBtn');
             const error = document.getElementById('error');
             const success = document.getElementById('success');
             
             try {
-                countdown.style.display = 'flex';
-                let seconds = 10;
-                document.getElementById('countdownTimer').textContent = seconds;
+                // Convert image to blob
+                const response = await fetch(currentMemeUrl);
+                const blob = await response.blob();
                 
-                const countdownInterval = setInterval(() => {
-                    seconds--;
-                    document.getElementById('countdownTimer').textContent = seconds;
+                // Create form data for ImgBB
+                const formData = new FormData();
+                formData.append('image', blob);
+                
+                // Upload to ImgBB
+                const imgbbResponse = await fetch('https://api.imgbb.com/1/upload?key=d5b5d8ca4f3a3c0a1e2248d121111692', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const imgbbData = await imgbbResponse.json();
+                
+                if (imgbbData.success) {
+                    imgbbUrl = imgbbData.data.url;
                     
-                    if (seconds <= 0) {
-                        clearInterval(countdownInterval);
-                        performImgBBUpload();
-                    }
-                }, 1000);
-
-                async function performImgBBUpload() {
-                    try {
-                        // Convert image to blob
-                        const response = await fetch(currentMemeUrl);
-                        const blob = await response.blob();
-                        
-                        // Create form data for ImgBB
-                        const formData = new FormData();
-                        formData.append('image', blob);
-                        
-                        // Upload to ImgBB
-                        const imgbbResponse = await fetch('https://api.imgbb.com/1/upload?key=d5b5d8ca4f3a3c0a1e2248d121111692', {
-                            method: 'POST',
-                            body: formData
-                        });
-                        
-                        const imgbbData = await imgbbResponse.json();
-                        
-                        if (imgbbData.success) {
-                            imgbbUrl = imgbbData.data.url;
-                            
-                            // Update download now button with direct link
-                            downloadNowBtn.href = imgbbUrl;
-                            
-                            success.textContent = '✅ Meme uploaded to ImgBB! Click "Download Now" to get your meme.';
-                            success.style.display = 'block';
-                            
-                        } else {
-                            throw new Error('Failed to upload to ImgBB');
-                        }
-                        
-                    } catch (err) {
-                        error.textContent = `Upload Error: ${err.message}`;
-                        error.style.display = 'block';
-                    } finally {
-                        countdown.style.display = 'none';
-                    }
+                    // Update download now button with direct link
+                    downloadNowBtn.href = imgbbUrl;
+                    downloadNowBtn.style.display = 'block';
+                    downloadBtn.style.display = 'none';
+                    
+                    success.textContent = '✅ Meme uploaded to ImgBB! Click "Download Now" to get your meme.';
+                    success.style.display = 'block';
+                    
+                } else {
+                    throw new Error('Failed to upload to ImgBB');
                 }
                 
             } catch (err) {
                 error.textContent = `Upload Error: ${err.message}`;
                 error.style.display = 'block';
-                countdown.style.display = 'none';
             }
         }
 
@@ -930,20 +921,19 @@
             document.getElementById('memePreview').classList.remove('has-meme');
             
             // Hide buttons
-            document.getElementById('unlockBtn').style.display = 'none';
+            document.getElementById('downloadBtn').style.display = 'block';
             document.getElementById('downloadNowBtn').style.display = 'none';
             document.getElementById('resetBtn').style.display = 'none';
-            document.getElementById('adsInfo').style.display = 'none';
             
             // Clear messages
             document.getElementById('error').style.display = 'none';
             document.getElementById('success').style.display = 'none';
             document.getElementById('loading').style.display = 'none';
-            document.getElementById('countdown').style.display = 'none';
             
             // Reset variables
             currentMemeUrl = '';
             imgbbUrl = '';
+            downloadAdsCount = 0;
             
             // Show success message
             const success = document.getElementById('success');
@@ -964,11 +954,11 @@
             
             // Add enter key support
             document.getElementById('topText').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') generateMeme();
+                if (e.key === 'Enter') generateMemeWithAd();
             });
             
             document.getElementById('bottomText').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') generateMeme();
+                if (e.key === 'Enter') generateMemeWithAd();
             });
 
             // Telegram back button handling
